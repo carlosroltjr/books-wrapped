@@ -99,17 +99,38 @@ export default function WrappedScreen() {
     setStats(yearStats.sort((a, b) => Number(b.year) - Number(a.year)));
   }
 
-  function getPagesMessage(totalPages: number): string {
+  function getPagesMessage(totalPages: number): string | React.ReactElement {
     if (totalPages === 0) {
       return `you didn’t turn a single page. Maybe next year will be your comeback story`;
     } else if (totalPages < 500) {
-      return `you read ${totalPages} pages — a light warm-up`;
+      return (
+        <Text style={styles.subtitle}>
+          you <Text style={styles.highlight}>read</Text>
+          <Text style={styles.highlightLarge}> {totalPages}</Text> pages — a light warm-up
+        </Text>
+      )
     } else if (totalPages < 2000) {
-      return `you made it through ${totalPages} pages. Steady and solid`;
+      return (
+        <Text style={styles.subtitle}>
+          you <Text style={styles.highlight}>made it through</Text>
+          <Text style={styles.highlightLarge}> {totalPages}</Text> pages. Steady and solid
+        </Text>
+      )
     } else if (totalPages < 5000) {
-      return `you devoured ${totalPages} pages. That’s some serious reading`;
+      return (
+        <Text style={styles.subtitle}>
+          you <Text style={styles.highlight}>devoured</Text>
+          <Text style={styles.highlightLarge}> {totalPages}</Text> pages. That’s some serious reading
+        </Text>
+      )
     } else {
-      return `you conquered ${totalPages} pages. Legendary status unlocked`;
+      `you conquered ${totalPages} pages. Legendary status unlocked`;
+      return (
+        <Text style={styles.subtitle}>
+          you <Text style={styles.highlight}>conquered</Text>
+          <Text style={styles.highlightLarge}> {totalPages}</Text> pages. Legendary status unlocked
+        </Text>
+      )
     }
   }
 
@@ -125,7 +146,11 @@ export default function WrappedScreen() {
       },
       {
         title: 'Your reading vibe this year?',
-        subtitle: `Definitely ${latestStats.topGenre || 'no genre defined'}.`,
+        subtitle: (
+          <Text style={styles.subtitle}>
+            Definitely <Text style={styles.highlight}>{latestStats.topGenre || 'no genre defined'}</Text>.
+          </Text>
+        ),
         icon: CardIcons.Glasses,
       },
       {
@@ -135,12 +160,20 @@ export default function WrappedScreen() {
       },
       {
         title: 'You read',
-        subtitle: `${latestStats.totalBooks} books this year, but things got serious with one author...`,
+        subtitle: (
+          <Text style={styles.subtitle}>
+            <Text style={styles.highlight}>{latestStats.totalBooks}</Text> books this year, but things got serious with one author...
+          </Text>
+        ),
         icon: CardIcons.Book,
       },
       {
         title: 'Your top author was',
-        subtitle: `${latestStats.topAuthor || '—'}`,
+        subtitle: (
+          <Text style={styles.subtitle}>
+            <Text style={styles.highlight}>{latestStats.topAuthor || '—'}</Text>
+          </Text>
+        ),
         icon: CardIcons.PenTool,
       },
       {
@@ -251,19 +284,28 @@ const styles = StyleSheet.create({
     color: 'white',
     textAlign: 'center',
   },
+  highlight: {
+    color: '#818cf8',
+    fontWeight: 'bold',
+  },
+  highlightLarge: {
+    color: '#a855f7',
+    fontWeight: 'bold',
+    fontSize: 40,
+  },
   booksList: {
-    alignItems: 'baseline',
-    justifyContent: 'flex-start',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   bookItem: {
-    alignItems: 'baseline',
+    alignItems: 'center',
     marginBottom: 8,
   },
   bookTitle: {
     fontSize: 20,
     fontWeight: '600',
     color: 'white',
-    textAlign: 'left',
+    textAlign: 'center',
   },
   dotsContainer: {
     flexDirection: 'row',
