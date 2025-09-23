@@ -1,3 +1,4 @@
+import { useTheme } from "@react-navigation/native";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -11,12 +12,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { addBook, Book, searchBooks } from "../storage/books";
+import { addBook, Book, Partial, searchBooks } from "../utils/books";
 
 export default function SearchScreen() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Book[]>([]);
   const [loading, setLoading] = useState(false);
+  const { colors } = useTheme();
 
   async function handleSearch() {
     if (!query.trim()) return;
@@ -33,12 +35,7 @@ export default function SearchScreen() {
 
   async function handleAdd(
     workKey: string,
-    partial?: {
-      title: string;
-      author: string[];
-      cover?: string;
-      pages?: number;
-    }
+    partial?: Partial
   ) {
     try {
       const newBook = await addBook(workKey, partial);
@@ -49,27 +46,36 @@ export default function SearchScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <TextInput
         placeholder="Search books..."
+        placeholderTextColor={colors.text + "99"}
         value={query}
         onChangeText={setQuery}
-        style={styles.input}
+        style={[
+          styles.input,
+          { borderColor: colors.border, color: colors.text },
+        ]}
       />
-      <Button title="Search" onPress={handleSearch} />
-      {loading && <ActivityIndicator style={{ margin: 20 }} />}
+      <Button title="Search" onPress={handleSearch} color={colors.primary} />
+      {loading && <ActivityIndicator style={{ margin: 20 }} color={colors.primary} />}
       <FlatList
         data={results}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.item}>
+          <View
+            style={[
+              styles.item,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+          >
             {item.cover && (
               <Image source={{ uri: item.cover }} style={styles.cover} />
             )}
             <View style={{ flex: 1 }}>
-              <Text style={styles.title}>{item.title}</Text>
+              <Text style={[styles.title, { color: colors.text }]}>{item.title}</Text>
               {item.author?.length > 0 && (
-                <Text style={styles.author}>{item.author.join(", ")}</Text>
+                <Text style={[styles.author, { color: colors.text }]}>{item.author.join(", ")}</Text>
               )}
               <TouchableOpacity
                 style={styles.button}
@@ -77,6 +83,7 @@ export default function SearchScreen() {
                   handleAdd(item.id, {
                     title: item.title,
                     author: item.author,
+                    subjects: item.subjects,
                     cover: item.cover,
                     pages: item.pages,
                   })
@@ -114,10 +121,15 @@ const styles = StyleSheet.create({
   author: { fontSize: 14, color: "#666" },
   button: {
     marginTop: 5,
-    backgroundColor: "#007AFF",
+    backgroundColor: "#e0e0e0",
     padding: 6,
     borderRadius: 5,
     alignSelf: "flex-start",
   },
-  buttonText: { color: "white", fontWeight: "bold" },
+  buttonText: {
+    color: "#333",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
 });

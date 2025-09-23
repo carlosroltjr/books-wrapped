@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useTheme } from "@react-navigation/native";
 import React, { useCallback, useState } from "react";
 import {
   FlatList,
@@ -17,13 +17,14 @@ import {
   getBooks,
   setFinishedAt,
   setRating,
-} from "../storage/books";
+} from "../utils/books";
 
 export default function MyBooksScreen() {
   const [books, setBooks] = useState<Book[]>([]);
   const [date, setDate] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
   const [activeBookId, setActiveBookId] = useState<string | null>(null);
+  const { colors } = useTheme();
 
   async function load() {
     setBooks(await getBooks());
@@ -75,17 +76,7 @@ export default function MyBooksScreen() {
         data={books}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View
-            style={{
-              flexDirection: "row",
-              marginBottom: 16,
-              padding: 8,
-              borderWidth: 1,
-              borderColor: "#ddd",
-              borderRadius: 8,
-              alignItems: "center",
-            }}
-          >
+          <View style={[styles.flatList, { backgroundColor: colors.card, borderColor: colors.border },]}>
             {item.cover && (
               <Image
                 source={{ uri: item.cover }}
@@ -93,15 +84,20 @@ export default function MyBooksScreen() {
               />
             )}
             <View style={{ flex: 1 }}>
-              {/* Nova View para o título e o botão de lixeira */}
               <View style={styles.titleRow}>
-                <Text style={styles.titleText}>{item.title}</Text>
+                <Text style={[styles.titleText, { color: colors.text }]}>
+                  {item.title}
+                </Text>
                 <TouchableOpacity onPress={() => handleDelete(item.id)}>
-                  <MaterialCommunityIcons name="trash-can" size={24} color="red" />
+                  <MaterialCommunityIcons
+                    name="trash-can"
+                    size={24}
+                    color={colors.notification}
+                  />
                 </TouchableOpacity>
               </View>
 
-              <Text>{item.author.join(", ")}</Text>
+              <Text style={{ color: colors.text }}>{item.author.join(", ")}</Text>
               {item.finishedAt && (
                 <Text style={{ color: "green" }}>
                   Finished at: {item.finishedAt}
@@ -110,7 +106,7 @@ export default function MyBooksScreen() {
               {renderStars(item)}
               <View style={{ flexDirection: "row", marginTop: 4 }}>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Text style={{ marginRight: 10 }}>Finished?</Text>
+                  <Text style={{ marginRight: 10, color: colors.text }}>Finished?</Text>
                   <View style={styles.buttonRow}>
                     <TouchableOpacity
                       style={styles.button}
@@ -141,7 +137,7 @@ export default function MyBooksScreen() {
           value={date}
           mode="date"
           display={Platform.OS === "ios" ? "spinner" : "default"}
-          onChange={(event, selectedDate) => {
+          onChange={(_event, selectedDate) => {
             setShowPicker(Platform.OS === "ios");
             if (selectedDate && activeBookId) {
               handleFinished(activeBookId, selectedDate);
@@ -155,6 +151,13 @@ export default function MyBooksScreen() {
 }
 
 const styles = StyleSheet.create({
+  flatList: {
+    flexDirection: "row",
+    marginBottom: 16,
+    padding: 8,
+    borderRadius: 8,
+    alignItems: "center",
+  },
   titleRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -163,7 +166,7 @@ const styles = StyleSheet.create({
   titleText: {
     fontWeight: "bold",
     fontSize: 16,
-    flexShrink: 1, // Permite que o texto do título encurte se necessário
+    flexShrink: 1,
   },
   buttonRow: {
     flexDirection: "row",

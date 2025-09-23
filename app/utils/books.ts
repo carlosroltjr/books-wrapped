@@ -8,7 +8,15 @@ export type Book = {
   cover?: string;
   rating?: number | null;
   finishedAt?: string | null;
-  genres?: string[];
+  subjects?: string[];
+};
+
+export type Partial = {
+  title: string;
+  author: string[];
+  subjects?: string[];
+  cover?: string;
+  pages?: number;
 };
 
 export default function booksUtils() {}
@@ -42,12 +50,7 @@ export async function searchBooks(query: string): Promise<Book[]> {
  */
 export async function addBook(
   workKey: string,
-  partial?: {
-    title: string;
-    author: string[];
-    cover?: string;
-    pages?: number;
-  }
+  partial?: Partial
 ): Promise<Book> {
   const books = await getBooks();
 
@@ -60,7 +63,7 @@ export async function addBook(
   const data = await res.json();
   const editions = data.entries || [];
 
-  // Função para extrair o ano (quanto mais confiável, melhor)
+  // Função para extrair o ano
   const getYear = (ed: any): number => {
     if (ed.publish_date) {
       const match = ed.publish_date.match(/\d{4}/);
@@ -101,17 +104,29 @@ export async function addBook(
   const edition = sorted[0];
   if (!edition) throw new Error("No valid edition found");
 
+  // Tenta pegar genres da edição
+  let subjects: string[] = edition.subjects || [];
+
+  // Se não tem, busca no work
+  if (!subjects.length) {
+    const workRes = await fetch(`https://openlibrary.org${workKey}.json`);
+    if (workRes.ok) {
+      const workData = await workRes.json();
+      subjects = workData.subjects || [];
+    }
+  }
+
   const newBook: Book = {
     id: workKey,
     title: partial?.title ?? edition.title ?? "Untitled",
-    author: partial?.author ?? [],
-    pages: edition.number_of_pages ?? partial?.pages ?? null,
+    author: partial?.author ?? edition.author ?? [],
+    pages: partial?.pages ?? edition.number_of_pages ?? null,
     cover: edition.covers?.length
       ? `https://covers.openlibrary.org/b/id/${edition.covers[0]}-L.jpg`
       : partial?.cover,
     rating: null,
     finishedAt: null,
-    genres: edition.subjects || [],
+    subjects: partial?.subjects ?? subjects,
   };
 
   await saveBooks([...books, newBook]);
@@ -171,11 +186,105 @@ export async function setRating(id: string, rating: number) {
   await saveBooks(updated);
 }
 
-export async function getTotalPagesRead(): Promise<number> {
-  const books = await getBooks();
-  let pagesRead = 0;
-  books.forEach((book) => {
-    pagesRead += book.pages || 0;
-  });
-  return pagesRead;
+export function normalizeSubject(subject: string): string | null {
+  const lower = subject.toLowerCase();
+
+  // Descartar lixo
+  if (
+    lower.startsWith("nyt:") ||
+    lower.startsWith("award:") ||
+    lower.includes("reviewed") ||
+    lower.includes("bestseller") ||
+    lower.includes("long now manual") ||
+    lower.includes("open library staff") ||
+    lower.includes("reading level") ||
+    lower.includes("specimens") ||
+    lower.includes("translations into") ||
+    lower.includes("roman") ||
+    lower.includes("anglais") ||
+    /^[0-9/.ps]+$/.test(lower) // códigos
+  ) {
+    return null;
+  }
+
+  // Ficção
+  if (lower.includes("cyberpunk")) return "Cyberpunk";
+  if (lower.includes("hard science fiction")) return "Hard Science Fiction";
+  if (
+    lower.includes("science fiction") ||
+    lower.includes("science-fiction") ||
+    lower.includes("ciencia-ficción")
+  ) {
+    return "Science Fiction";
+  }
+  if (lower.includes("fantasy")) return "Fantasy";
+  if (lower.includes("mystery") || lower.includes("detective"))
+    return "Mystery & Detective";
+  if (lower.includes("romance") || lower.includes("love stories"))
+    return "Romance";
+  if (
+    lower.includes("horror") ||
+    lower.includes("ghost") ||
+    lower.includes("supernatural")
+  )
+    return "Horror";
+  if (
+    lower.includes("thriller") ||
+    lower.includes("suspense") ||
+    lower.includes("crime")
+  )
+    return "Thriller / Crime";
+  if (lower.includes("historical fiction")) return "Historical Fiction";
+
+  // Não-ficção
+  if (
+    lower.includes("biography") ||
+    lower.includes("autobiography") ||
+    lower.includes("memoir")
+  )
+    return "Biography / Memoir";
+  if (lower.includes("history")) return "History";
+  if (lower.includes("politics") || lower.includes("political science"))
+    return "Politics";
+  if (lower.includes("philosophy") || lower.includes("ethics"))
+    return "Philosophy";
+  if (
+    lower.includes("religion") ||
+    lower.includes("bible") ||
+    lower.includes("theology") ||
+    lower.includes("spirituality")
+  )
+    return "Religion / Spirituality";
+  if (
+    lower.includes("science") ||
+    lower.includes("ecology") ||
+    lower.includes("physics") ||
+    lower.includes("biology") ||
+    lower.includes("astronomy") ||
+    lower.includes("mathematics")
+  )
+    return "Science";
+  if (
+    lower.includes("computer") ||
+    lower.includes("cyberspace") ||
+    lower.includes("technology") ||
+    lower.includes("hackers")
+  )
+    return "Technology";
+  if (
+    lower.includes("business") ||
+    lower.includes("economics") ||
+    lower.includes("self-help")
+  )
+    return "Business & Self-Help";
+  if (lower.includes("poetry")) return "Poetry";
+  if (
+    lower.includes("drama") ||
+    lower.includes("theater") ||
+    lower.includes("play")
+  )
+    return "Drama";
+
+  // Se não cair em nenhum, retorna null (ignorar)
+  return null;
 }
