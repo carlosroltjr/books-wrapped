@@ -104,13 +104,13 @@ export default function MyBooksScreen() {
               <Text>{item.author.join(", ")}</Text>
               {item.finishedAt && (
                 <Text style={{ color: "green" }}>
-                  Terminado em: {item.finishedAt}
+                  Finished at: {item.finishedAt}
                 </Text>
               )}
               {renderStars(item)}
               <View style={{ flexDirection: "row", marginTop: 4 }}>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Text style={{ marginRight: 10 }}>Lido?</Text>
+                  <Text style={{ marginRight: 10 }}>Finished?</Text>
                   <View style={styles.buttonRow}>
                     <TouchableOpacity
                       style={styles.button}
@@ -118,7 +118,7 @@ export default function MyBooksScreen() {
                         handleFinished(item.id, new Date());
                       }}
                     >
-                      <Text style={styles.buttonText}>Hoje</Text>
+                      <Text style={styles.buttonText}>Today</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.button, { marginHorizontal: 0 }]}
@@ -127,7 +127,7 @@ export default function MyBooksScreen() {
                         setShowPicker(true);
                       }}
                     >
-                      <Text style={styles.buttonText}>Outra data</Text>
+                      <Text style={styles.buttonText}>Other</Text>
                     </TouchableOpacity>
                   </View>
                 </View>

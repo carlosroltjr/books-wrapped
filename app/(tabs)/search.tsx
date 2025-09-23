@@ -1,5 +1,16 @@
 import React, { useState } from "react";
-import { ActivityIndicator, Alert, Button, FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Button,
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { addBook, Book, searchBooks } from "../storage/books";
 
 export default function SearchScreen() {
@@ -14,30 +25,38 @@ export default function SearchScreen() {
       const books = await searchBooks(query);
       setResults(books);
     } catch (e) {
-      Alert.alert("Erro", "Falha ao buscar livros");
+      Alert.alert("Error", "Failed to fetch books");
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleAdd(workKey: string) {
+  async function handleAdd(
+    workKey: string,
+    partial?: {
+      title: string;
+      author: string[];
+      cover?: string;
+      pages?: number;
+    }
+  ) {
     try {
-      const newBook = await addBook(workKey);
-      Alert.alert("Sucesso", `${newBook.title} foi salvo em Meus Livros!`);
+      const newBook = await addBook(workKey, partial);
+      Alert.alert("Success", `${newBook.title} was saved to My Books!`);
     } catch (e: any) {
-      Alert.alert("Erro", e.message || "Não foi possível salvar o livro.");
+      Alert.alert("Error", e.message || "Could not save the book.");
     }
   }
 
   return (
     <View style={styles.container}>
       <TextInput
-        placeholder="Buscar livros..."
+        placeholder="Search books..."
         value={query}
         onChangeText={setQuery}
         style={styles.input}
       />
-      <Button title="Pesquisar" onPress={handleSearch} />
+      <Button title="Search" onPress={handleSearch} />
       {loading && <ActivityIndicator style={{ margin: 20 }} />}
       <FlatList
         data={results}
@@ -54,9 +73,16 @@ export default function SearchScreen() {
               )}
               <TouchableOpacity
                 style={styles.button}
-                onPress={() => handleAdd(item.id)}
+                onPress={() =>
+                  handleAdd(item.id, {
+                    title: item.title,
+                    author: item.author,
+                    cover: item.cover,
+                    pages: item.pages,
+                  })
+                }
               >
-                <Text style={styles.buttonText}>Salvar</Text>
+                <Text style={styles.buttonText}>Save</Text>
               </TouchableOpacity>
             </View>
           </View>

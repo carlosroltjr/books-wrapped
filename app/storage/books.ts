@@ -11,44 +11,44 @@ export type Book = {
   genres?: string[];
 };
 
+export default function booksUtils() {}
+
 const STORAGE_KEY = "@books_wrapped";
 
 /**
  * Busca livros na OpenLibrary
  */
-export async function searchBooks(query: string): Promise<
-  {
-    id: string;
-    title: string;
-    author: string[];
-    pages?: number;
-    cover?: string;
-  }[]
-> {
+export async function searchBooks(query: string): Promise<Book[]> {
   const res = await fetch(
     `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}`
   );
-  if (!res.ok) throw new Error("Falha na busca à OpenLibrary");
+  if (!res.ok) throw new Error("Failed to fetch from OpenLibrary");
   const data = await res.json();
 
-  return (data.docs || [])
-    .slice(0, 15)
-    .map((doc: any) => ({
-      id: doc.key,
-      title: doc.title,
-      author: doc.author_name || [],
-      pages: doc.number_of_pages_median || undefined,
-      cover: doc.cover_i
-        ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg`
-        : undefined,
-    }));
+  return (data.docs || []).slice(0, 15).map((doc: any) => ({
+    id: doc.key,
+    title: doc.title,
+    author: doc.author_name || [],
+    pages: doc.number_of_pages_median || undefined,
+    cover: doc.cover_i
+      ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg`
+      : undefined,
+  }));
 }
 
 /**
  * Adiciona um livro com edição válida (páginas, capa e idioma)
  * Retorna o livro salvo. Se já existir, retorna o existente.
  */
-export async function addBook(workKey: string): Promise<Book> {
+export async function addBook(
+  workKey: string,
+  partial?: {
+    title: string;
+    author: string[];
+    cover?: string;
+    pages?: number;
+  }
+): Promise<Book> {
   const books = await getBooks();
 
   // Se já existe, retorna o existente
@@ -56,31 +56,59 @@ export async function addBook(workKey: string): Promise<Book> {
   if (already) return already;
 
   const res = await fetch(`https://openlibrary.org${workKey}/editions.json`);
-  if (!res.ok) throw new Error("Falha ao buscar edições na OpenLibrary");
+  if (!res.ok) throw new Error("Failed to fetch editions from OpenLibrary");
   const data = await res.json();
+  const editions = data.entries || [];
 
-  const edition = (data.entries || []).find(
-    (entry: any) =>
-      entry.number_of_pages &&
-      entry.covers &&
-      entry.languages &&
-      entry.languages.some(
-        (lang: any) =>
-          lang.key === "/languages/eng" || lang.key === "/languages/por"
-      )
-  );
+  // Função para extrair o ano (quanto mais confiável, melhor)
+  const getYear = (ed: any): number => {
+    if (ed.publish_date) {
+      const match = ed.publish_date.match(/\d{4}/);
+      return match ? parseInt(match[0], 10) : 0;
+    }
+    if (ed.created?.value) {
+      return new Date(ed.created.value).getFullYear();
+    }
+    return 0;
+  };
 
-  if (!edition) throw new Error("Nenhuma edição válida encontrada");
+  // Ordena: 1) idioma (português > inglês > outros), 2) ano decrescente
+  const sorted = editions
+    .filter(
+      (entry: any) =>
+        entry.number_of_pages &&
+        entry.covers &&
+        entry.languages &&
+        entry.languages.some(
+          (lang: any) =>
+            lang.key === "/languages/eng" || lang.key === "/languages/por"
+        )
+    )
+    .sort((a: any, b: any) => {
+      const langScore = (ed: any) =>
+        ed.languages.some((l: any) => l.key === "/languages/por")
+          ? 2
+          : ed.languages.some((l: any) => l.key === "/languages/eng")
+          ? 1
+          : 0;
+
+      const langDiff = langScore(b) - langScore(a);
+      if (langDiff !== 0) return langDiff;
+
+      return getYear(b) - getYear(a); // mais recente primeiro
+    });
+
+  const edition = sorted[0];
+  if (!edition) throw new Error("No valid edition found");
 
   const newBook: Book = {
     id: workKey,
-    title: edition.title || "Sem título",
-    author: edition.authors ? edition.authors.map((a: any) => a.name) : [],
-    pages: edition.number_of_pages,
-    cover:
-      edition.covers && edition.covers.length
-        ? `https://covers.openlibrary.org/b/id/${edition.covers[0]}-L.jpg`
-        : undefined,
+    title: partial?.title ?? edition.title ?? "Untitled",
+    author: partial?.author ?? [],
+    pages: edition.number_of_pages ?? partial?.pages ?? null,
+    cover: edition.covers?.length
+      ? `https://covers.openlibrary.org/b/id/${edition.covers[0]}-L.jpg`
+      : partial?.cover,
     rating: null,
     finishedAt: null,
     genres: edition.subjects || [],
@@ -127,7 +155,9 @@ export async function deleteBook(id: string): Promise<void> {
 export async function setFinishedAt(id: string, year: number, month: number) {
   const books = await getBooks();
   const updated = books.map((b) =>
-    b.id === id ? { ...b, finishedAt: `${year}-${String(month).padStart(2, "0")}` } : b
+    b.id === id
+      ? { ...b, finishedAt: `${year}-${String(month).padStart(2, "0")}` }
+      : b
   );
   await saveBooks(updated);
 }
@@ -137,8 +167,15 @@ export async function setFinishedAt(id: string, year: number, month: number) {
  */
 export async function setRating(id: string, rating: number) {
   const books = await getBooks();
-  const updated = books.map((b) =>
-    b.id === id ? { ...b, rating } : b
-  );
+  const updated = books.map((b) => (b.id === id ? { ...b, rating } : b));
   await saveBooks(updated);
+}
+
+export async function getTotalPagesRead(): Promise<number> {
+  const books = await getBooks();
+  let pagesRead = 0;
+  books.forEach((book) => {
+    pagesRead += book.pages || 0;
+  });
+  return pagesRead;
 }
