@@ -1,10 +1,17 @@
-import { ScrollView, StyleSheet } from "react-native";
-
-import { Text, View } from "@/components/Themed";
 import { useTheme } from "@react-navigation/native";
 import { useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import React, { useCallback, useState } from "react";
+import { SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { PanGestureHandler, State } from "react-native-gesture-handler";
 import { Book, getBooks, normalizeSubject } from "../utils/books";
+
+const CardIcons = {
+  Glasses: '👓',
+  Flame: '🔥',
+  Book: '📖',
+  PenTool: '✍️',
+  Calendar: '📅',
+};
 
 type YearStats = {
   year: string;
@@ -15,8 +22,15 @@ type YearStats = {
   topBooks: Book[];
 };
 
+type CardData = {
+  title: string;
+  subtitle: string | React.ReactElement;
+  icon: string;
+};
+
 export default function WrappedScreen() {
   const [stats, setStats] = useState<YearStats[]>([]);
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const { colors } = useTheme();
 
   useFocusEffect(
@@ -58,7 +72,7 @@ export default function WrappedScreen() {
           if (b.subjects)
             b.subjects.forEach((s) => {
               const norm = normalizeSubject(s);
-              if (!norm) return; // ignora subjects ruins
+              if (!norm) return;
               genreCount[norm] = (genreCount[norm] || 0) + 1;
             });
         });
@@ -85,69 +99,189 @@ export default function WrappedScreen() {
     setStats(yearStats.sort((a, b) => Number(b.year) - Number(a.year)));
   }
 
-  function getPagesMessage(year: string, totalPages: number): string {
+  function getPagesMessage(totalPages: number): string {
     if (totalPages === 0) {
-      return `In ${year}, you didn’t turn a single page. Maybe next year will be your comeback story`;
+      return `you didn’t turn a single page. Maybe next year will be your comeback story`;
     } else if (totalPages < 500) {
-      return `In ${year}, you read ${totalPages} pages — a light warm-up`;
+      return `you read ${totalPages} pages — a light warm-up`;
     } else if (totalPages < 2000) {
-      return `In ${year}, you made it through ${totalPages} pages. Steady and solid`;
+      return `you made it through ${totalPages} pages. Steady and solid`;
     } else if (totalPages < 5000) {
-      return `In ${year}, you devoured ${totalPages} pages. That’s some serious reading`;
+      return `you devoured ${totalPages} pages. That’s some serious reading`;
     } else {
-      return `In ${year}, you conquered ${totalPages} pages. Legendary status unlocked`;
+      return `you conquered ${totalPages} pages. Legendary status unlocked`;
     }
   }
 
+  const getCardsData = (): CardData[] => {
+    if (stats.length === 0) return [];
+    const latestStats = stats[0];
+
+    return [
+      {
+        title: `${latestStats.year} Wrapped Stories`,
+        subtitle: `Your reading journey.`,
+        icon: CardIcons.Calendar,
+      },
+      {
+        title: 'Your reading vibe this year?',
+        subtitle: `Definitely ${latestStats.topGenre || 'no genre defined'}.`,
+        icon: CardIcons.Glasses,
+      },
+      {
+        title: `In ${latestStats.year},`,
+        subtitle: getPagesMessage(latestStats.totalPages),
+        icon: CardIcons.Flame,
+      },
+      {
+        title: 'You read',
+        subtitle: `${latestStats.totalBooks} books this year, but things got serious with one author...`,
+        icon: CardIcons.Book,
+      },
+      {
+        title: 'Your top author was',
+        subtitle: `${latestStats.topAuthor || '—'}`,
+        icon: CardIcons.PenTool,
+      },
+      {
+        title: 'Top Books',
+        subtitle: (
+          <View style={styles.booksList}>
+            {latestStats.topBooks.map((b) => (
+              <View key={b.id} style={styles.bookItem}>
+                <Text style={styles.bookTitle}>{b.title}</Text>
+              </View>
+            ))}
+          </View>
+        ),
+        icon: CardIcons.Book,
+      },
+    ];
+  };
+
+  const cardsData = getCardsData();
+
+  const onGestureEvent = (event: any) => {
+    if (event.nativeEvent.state === State.END) {
+      const { translationX } = event.nativeEvent;
+      if (translationX < -50 && currentCardIndex < cardsData.length - 1) {
+        setCurrentCardIndex(currentCardIndex + 1);
+      } else if (translationX > 50 && currentCardIndex > 0) {
+        setCurrentCardIndex(currentCardIndex - 1);
+      }
+    }
+  };
+
+  if (stats.length === 0) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <Text style={styles.loadingText}>Loading your stats...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  const currentCard = cardsData[currentCardIndex];
+
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Wrapped</Text>
-      {stats.map((s) => (
-        <View
-          key={s.year}
-          style={[
-            styles.yearBlock,
-            { backgroundColor: colors.card, borderColor: colors.border },
-          ]}
-        >
-          <Text style={styles.year}>{s.year}</Text>
-          <Text>Your reading vibe this year? Definitely {s.topGenre}.</Text>
-          <Text>{getPagesMessage(s.year, s.totalPages)}</Text>
-          <Text>
-            You read {s.totalBooks} books this year, but things got serious with
-            one author...
-          </Text>
-          <Text>Your top author was {s.topAuthor || "—"}</Text>
-          <Text style={{ marginTop: 10, fontWeight: "bold" }}>Top Books</Text>
-          {s.topBooks.map((b) => (
-            <Text key={b.id}>
-              - {b.title} ({b.rating}/5)
-            </Text>
+    <PanGestureHandler onHandlerStateChange={onGestureEvent}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={styles.card}>
+          <Text style={styles.icon}>{currentCard.icon}</Text>
+          <Text style={styles.title}>{currentCard.title}</Text>
+          {typeof currentCard.subtitle === 'string' ? (
+            <Text style={styles.subtitle}>{currentCard.subtitle}</Text>
+          ) : (
+            currentCard.subtitle
+          )}
+        </View>
+        <View style={styles.dotsContainer}>
+          {cardsData.map((_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.dot,
+                index === currentCardIndex && styles.activeDot,
+              ]}
+            />
           ))}
         </View>
-      ))}
-    </ScrollView>
+      </SafeAreaView>
+    </PanGestureHandler>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#0a0a0a',
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 16,
   },
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 16,
+  card: {
+    width: '90%',
+    aspectRatio: 9 / 16,
+    backgroundColor: '#1f2937',
+    borderRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.8,
+    shadowRadius: 15,
+    elevation: 20,
+    padding: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  yearBlock: {
+  icon: {
+    fontSize: 80,
     marginBottom: 24,
-    padding: 12,
-    borderRadius: 8,
   },
-  year: {
-    fontSize: 18,
-    fontWeight: "bold",
+  title: {
+    fontSize: 40,
+    fontWeight: 'bold',
+    color: 'white',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 5,
     marginBottom: 8,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+  },
+  booksList: {
+    alignItems: 'baseline',
+    justifyContent: 'flex-start',
+  },
+  bookItem: {
+    alignItems: 'baseline',
+    marginBottom: 8,
+  },
+  bookTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: 'white',
+    textAlign: 'left',
+  },
+  dotsContainer: {
+    flexDirection: 'row',
+    marginTop: 24,
+  },
+  dot: {
+    height: 8,
+    width: 8,
+    borderRadius: 4,
+    backgroundColor: '#4b5563',
+    marginHorizontal: 4,
+  },
+  activeDot: {
+    backgroundColor: '#6366f1',
+  },
+  loadingText: {
+    color: '#fff',
+    fontSize: 18,
+    textAlign: 'center',
   },
 });
