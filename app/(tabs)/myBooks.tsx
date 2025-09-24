@@ -111,7 +111,7 @@ export default function MyBooksScreen() {
                     <TouchableOpacity
                       style={styles.button}
                       onPress={() => {
-                        handleFinished(item.id, new Date());
+                        handleFinished(item.id, date);
                       }}
                     >
                       <Text style={styles.buttonText}>Today</Text>
@@ -136,6 +136,7 @@ export default function MyBooksScreen() {
         <DateTimePicker
           value={date}
           mode="date"
+          maximumDate={date}
           display={Platform.OS === "ios" ? "spinner" : "default"}
           onChange={(_event, selectedDate) => {
             setShowPicker(Platform.OS === "ios");
