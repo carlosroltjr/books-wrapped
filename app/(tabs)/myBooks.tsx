@@ -11,13 +11,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import {
-  Book,
-  deleteBook,
-  getBooks,
-  setFinishedAt,
-  setRating,
-} from "../utils/books";
+import { setFinishedAt, setRating } from "../../src/hooks/useBooks";
+import { deleteBook, loadBooks } from "../../src/services/booksStorage";
+import { Book } from "../../src/types";
 
 export default function MyBooksScreen() {
   const [books, setBooks] = useState<Book[]>([]);
@@ -27,7 +23,7 @@ export default function MyBooksScreen() {
   const { colors } = useTheme();
 
   async function load() {
-    setBooks(await getBooks());
+    setBooks(await loadBooks());
   }
 
   useFocusEffect(

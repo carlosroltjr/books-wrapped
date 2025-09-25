@@ -12,7 +12,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { addBook, Book, Partial, searchBooks } from "../utils/books";
+import { addBook, searchBooks } from "../../src/services/booksApi";
+import { Book, PartialBook } from "../../src/types";
 
 export default function SearchScreen() {
   const [query, setQuery] = useState("");
@@ -35,7 +36,7 @@ export default function SearchScreen() {
 
   async function handleAdd(
     workKey: string,
-    partial?: Partial
+    partial?: PartialBook
   ) {
     try {
       const newBook = await addBook(workKey, partial);
@@ -57,7 +58,9 @@ export default function SearchScreen() {
           { borderColor: colors.border, color: colors.text },
         ]}
       />
-      <Button title="Search" onPress={handleSearch} color={colors.primary} />
+      <View style={{marginBottom: 15}}>
+        <Button title="Search" onPress={handleSearch} color={colors.primary} />
+      </View>
       {loading && <ActivityIndicator style={{ margin: 20 }} color={colors.primary} />}
       <FlatList
         data={results}
