@@ -46,10 +46,8 @@ export default function MyBooksScreen() {
     load();
   }
 
-  const handleFinished = async (id: string, finishedDate: Date) => {
-    const year = finishedDate.getFullYear();
-    const month = finishedDate.getMonth() + 1;
-    await setFinishedAt(id, year, month);
+  const handleFinished = async (id: string, finishedDate: Date | null) => {
+    await setFinishedAt(id, finishedDate);
     load();
   };
 
@@ -76,7 +74,12 @@ export default function MyBooksScreen() {
         data={books}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={[styles.flatList, { backgroundColor: colors.card, borderColor: colors.border },]}>
+          <View
+            style={[
+              styles.flatList,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
+          >
             {item.cover && (
               <Image
                 source={{ uri: item.cover }}
@@ -97,7 +100,9 @@ export default function MyBooksScreen() {
                 </TouchableOpacity>
               </View>
 
-              <Text style={{ color: colors.text }}>{item.author.join(", ")}</Text>
+              <Text style={{ color: colors.text }}>
+                {item.author.join(", ")}
+              </Text>
               {item.finishedAt && (
                 <Text style={{ color: "green" }}>
                   Finished at: {item.finishedAt}
@@ -106,16 +111,10 @@ export default function MyBooksScreen() {
               {renderStars(item)}
               <View style={{ flexDirection: "row", marginTop: 4 }}>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Text style={{ marginRight: 10, color: colors.text }}>Finished?</Text>
+                  <Text style={{ marginRight: 10, color: colors.text }}>
+                    Finished?
+                  </Text>
                   <View style={styles.buttonRow}>
-                    <TouchableOpacity
-                      style={styles.button}
-                      onPress={() => {
-                        handleFinished(item.id, date);
-                      }}
-                    >
-                      <Text style={styles.buttonText}>Today</Text>
-                    </TouchableOpacity>
                     <TouchableOpacity
                       style={[styles.button, { marginHorizontal: 0 }]}
                       onPress={() => {
@@ -123,7 +122,15 @@ export default function MyBooksScreen() {
                         setShowPicker(true);
                       }}
                     >
-                      <Text style={styles.buttonText}>Other</Text>
+                      <Text style={styles.buttonText}>Yep</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.button}
+                      onPress={() => {
+                        handleFinished(item.id, null);
+                      }}
+                    >
+                      <Text style={styles.buttonText}>Not yet</Text>
                     </TouchableOpacity>
                   </View>
                 </View>

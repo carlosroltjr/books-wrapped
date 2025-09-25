@@ -167,13 +167,21 @@ export async function deleteBook(id: string): Promise<void> {
 /**
  * Define data de conclusão do livro
  */
-export async function setFinishedAt(id: string, year: number, month: number) {
+export async function setFinishedAt(id: string, finishedAt: Date | null) {
   const books = await getBooks();
-  const updated = books.map((b) =>
-    b.id === id
-      ? { ...b, finishedAt: `${year}-${String(month).padStart(2, "0")}` }
-      : b
-  );
+  let updated: Book[] = [];
+  if (finishedAt) {
+    const year = finishedAt.getFullYear();
+    const month = finishedAt.getMonth() + 1;
+    updated = books.map((b) =>
+      b.id === id
+        ? { ...b, finishedAt: `${year}-${String(month).padStart(2, "0")}` }
+        : b
+    );
+  } else {
+    updated = books.map((b) => (b.id === id ? { ...b, finishedAt: null } : b));
+  }
+
   await saveBooks(updated);
 }
 

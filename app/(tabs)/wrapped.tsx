@@ -6,11 +6,11 @@ import { PanGestureHandler, State } from "react-native-gesture-handler";
 import { Book, getBooks, normalizeSubject } from "../utils/books";
 
 const CardIcons = {
-  Glasses: '👓',
-  Flame: '🔥',
-  Book: '📖',
-  PenTool: '✍️',
-  Calendar: '📅',
+  Glasses: "👓",
+  Flame: "🔥",
+  Book: "📖",
+  PenTool: "✍️",
+  Calendar: "📅",
 };
 
 type YearStats = {
@@ -100,37 +100,46 @@ export default function WrappedScreen() {
   }
 
   function getPagesMessage(totalPages: number): string | React.ReactElement {
-    if (totalPages === 0) {
-      return `you didn’t turn a single page. Maybe next year will be your comeback story`;
+    if (totalPages < 100) {
+      return (
+        <Text style={styles.subtitle}>
+          you <Text style={styles.highlight}>read</Text>
+          <Text style={styles.highlightLarge}> {totalPages}</Text> pages. Your
+          books were lighter than a coffee break
+        </Text>
+      );
     } else if (totalPages < 500) {
       return (
         <Text style={styles.subtitle}>
           you <Text style={styles.highlight}>read</Text>
-          <Text style={styles.highlightLarge}> {totalPages}</Text> pages — a light warm-up
+          <Text style={styles.highlightLarge}> {totalPages}</Text> pages, a
+          light warm-up
         </Text>
-      )
+      );
     } else if (totalPages < 2000) {
       return (
         <Text style={styles.subtitle}>
           you <Text style={styles.highlight}>made it through</Text>
-          <Text style={styles.highlightLarge}> {totalPages}</Text> pages. Steady and solid
+          <Text style={styles.highlightLarge}> {totalPages}</Text> pages. Steady
+          and solid
         </Text>
-      )
+      );
     } else if (totalPages < 5000) {
       return (
         <Text style={styles.subtitle}>
           you <Text style={styles.highlight}>devoured</Text>
-          <Text style={styles.highlightLarge}> {totalPages}</Text> pages. That’s some serious reading
+          <Text style={styles.highlightLarge}> {totalPages}</Text> pages. That’s
+          some serious reading
         </Text>
-      )
+      );
     } else {
-      `you conquered ${totalPages} pages. Legendary status unlocked`;
       return (
         <Text style={styles.subtitle}>
           you <Text style={styles.highlight}>conquered</Text>
-          <Text style={styles.highlightLarge}> {totalPages}</Text> pages. Legendary status unlocked
+          <Text style={styles.highlightLarge}> {totalPages}</Text> pages.
+          Legendary status unlocked
         </Text>
-      )
+      );
     }
   }
 
@@ -145,10 +154,14 @@ export default function WrappedScreen() {
         icon: CardIcons.Calendar,
       },
       {
-        title: 'Your reading vibe this year?',
+        title: "Your reading vibe this year?",
         subtitle: (
           <Text style={styles.subtitle}>
-            Definitely <Text style={styles.highlight}>{latestStats.topGenre || 'no genre defined'}</Text>.
+            Definitely{" "}
+            <Text style={styles.highlight}>
+              {latestStats.topGenre || "no genre defined"}
+            </Text>
+            .
           </Text>
         ),
         icon: CardIcons.Glasses,
@@ -159,25 +172,26 @@ export default function WrappedScreen() {
         icon: CardIcons.Flame,
       },
       {
-        title: 'You read',
+        title: "You read",
         subtitle: (
           <Text style={styles.subtitle}>
-            <Text style={styles.highlight}>{latestStats.totalBooks}</Text> books this year, but things got serious with one author...
+            <Text style={styles.highlight}>{latestStats.totalBooks}</Text> books
+            this year, but things got serious with one author...
           </Text>
         ),
         icon: CardIcons.Book,
       },
       {
-        title: 'Your top author was',
+        title: "Your top author was",
         subtitle: (
           <Text style={styles.subtitle}>
-            <Text style={styles.highlight}>{latestStats.topAuthor || '—'}</Text>
+            <Text style={styles.highlight}>{latestStats.topAuthor || "—"}</Text>
           </Text>
         ),
         icon: CardIcons.PenTool,
       },
       {
-        title: 'Top Books',
+        title: "Top Books",
         subtitle: (
           <View style={styles.booksList}>
             {latestStats.topBooks.map((b) => (
@@ -207,7 +221,9 @@ export default function WrappedScreen() {
 
   if (stats.length === 0) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: colors.background }]}
+      >
         <Text style={styles.loadingText}>Loading your stats...</Text>
       </SafeAreaView>
     );
@@ -217,11 +233,13 @@ export default function WrappedScreen() {
 
   return (
     <PanGestureHandler onHandlerStateChange={onGestureEvent}>
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SafeAreaView
+        style={[styles.container, { backgroundColor: colors.background }]}
+      >
         <View style={styles.card}>
           <Text style={styles.icon}>{currentCard.icon}</Text>
           <Text style={styles.title}>{currentCard.title}</Text>
-          {typeof currentCard.subtitle === 'string' ? (
+          {typeof currentCard.subtitle === "string" ? (
             <Text style={styles.subtitle}>{currentCard.subtitle}</Text>
           ) : (
             currentCard.subtitle
@@ -246,24 +264,24 @@ export default function WrappedScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a0a',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#0a0a0a",
+    justifyContent: "center",
+    alignItems: "center",
     padding: 16,
   },
   card: {
-    width: '90%',
+    width: "90%",
     aspectRatio: 9 / 16,
-    backgroundColor: '#1f2937',
+    backgroundColor: "#1f2937",
     borderRadius: 24,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.8,
     shadowRadius: 15,
     elevation: 20,
     padding: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   icon: {
     fontSize: 80,
@@ -271,59 +289,59 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 40,
-    fontWeight: 'bold',
-    color: 'white',
+    fontWeight: "bold",
+    color: "white",
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 5,
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   subtitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-    textAlign: 'center',
+    fontWeight: "bold",
+    color: "white",
+    textAlign: "center",
   },
   highlight: {
-    color: '#818cf8',
-    fontWeight: 'bold',
+    color: "#818cf8",
+    fontWeight: "bold",
   },
   highlightLarge: {
-    color: '#a855f7',
-    fontWeight: 'bold',
+    color: "#a855f7",
+    fontWeight: "bold",
     fontSize: 40,
   },
   booksList: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   bookItem: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 8,
   },
   bookTitle: {
     fontSize: 20,
-    fontWeight: '600',
-    color: 'white',
-    textAlign: 'center',
+    fontWeight: "600",
+    color: "white",
+    textAlign: "center",
   },
   dotsContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginTop: 24,
   },
   dot: {
     height: 8,
     width: 8,
     borderRadius: 4,
-    backgroundColor: '#4b5563',
+    backgroundColor: "#4b5563",
     marginHorizontal: 4,
   },
   activeDot: {
-    backgroundColor: '#6366f1',
+    backgroundColor: "#6366f1",
   },
   loadingText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 18,
-    textAlign: 'center',
+    textAlign: "center",
   },
 });
