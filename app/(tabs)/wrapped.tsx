@@ -102,7 +102,7 @@ export default function WrappedScreen() {
   function getPagesMessage(totalPages: number): string | React.ReactElement {
     if (totalPages < 100) {
       return (
-        <Text style={styles.subtitle}>
+        <Text style={[[styles.subtitle, {color: colors.text}], {color: colors.text}]}>
           you <Text style={styles.highlight}>read</Text>
           <Text style={styles.highlightLarge}> {totalPages}</Text> pages. Your
           books were lighter than a coffee break
@@ -110,7 +110,7 @@ export default function WrappedScreen() {
       );
     } else if (totalPages < 500) {
       return (
-        <Text style={styles.subtitle}>
+        <Text style={[[styles.subtitle, {color: colors.text}], {color: colors.text}]}>
           you <Text style={styles.highlight}>read</Text>
           <Text style={styles.highlightLarge}> {totalPages}</Text> pages, a
           light warm-up
@@ -118,7 +118,7 @@ export default function WrappedScreen() {
       );
     } else if (totalPages < 2000) {
       return (
-        <Text style={styles.subtitle}>
+        <Text style={[styles.subtitle, {color: colors.text}]}>
           you <Text style={styles.highlight}>made it through</Text>
           <Text style={styles.highlightLarge}> {totalPages}</Text> pages. Steady
           and solid
@@ -126,7 +126,7 @@ export default function WrappedScreen() {
       );
     } else if (totalPages < 5000) {
       return (
-        <Text style={styles.subtitle}>
+        <Text style={[styles.subtitle, {color: colors.text}]}>
           you <Text style={styles.highlight}>devoured</Text>
           <Text style={styles.highlightLarge}> {totalPages}</Text> pages. That’s
           some serious reading
@@ -134,7 +134,7 @@ export default function WrappedScreen() {
       );
     } else {
       return (
-        <Text style={styles.subtitle}>
+        <Text style={[styles.subtitle, {color: colors.text}]}>
           you <Text style={styles.highlight}>conquered</Text>
           <Text style={styles.highlightLarge}> {totalPages}</Text> pages.
           Legendary status unlocked
@@ -156,7 +156,7 @@ export default function WrappedScreen() {
       {
         title: "Your reading vibe this year?",
         subtitle: (
-          <Text style={styles.subtitle}>
+          <Text style={[[styles.subtitle, {color: colors.text}], {color: colors.text}]}>
             Definitely{" "}
             <Text style={styles.highlight}>
               {latestStats.topGenre || "no genre defined"}
@@ -174,7 +174,7 @@ export default function WrappedScreen() {
       {
         title: "You read",
         subtitle: (
-          <Text style={styles.subtitle}>
+          <Text style={[styles.subtitle, {color: colors.text}]}>
             <Text style={styles.highlight}>{latestStats.totalBooks}</Text> books
             this year, but things got serious with one author...
           </Text>
@@ -184,7 +184,7 @@ export default function WrappedScreen() {
       {
         title: "Your top author was",
         subtitle: (
-          <Text style={styles.subtitle}>
+          <Text style={[styles.subtitle, {color: colors.text}]}>
             <Text style={styles.highlight}>{latestStats.topAuthor || "—"}</Text>
           </Text>
         ),
@@ -196,7 +196,7 @@ export default function WrappedScreen() {
           <View style={styles.booksList}>
             {latestStats.topBooks.map((b) => (
               <View key={b.id} style={styles.bookItem}>
-                <Text style={styles.bookTitle}>{b.title}</Text>
+                <Text style={[styles.bookTitle, {color: colors.text}]}>{b.title}</Text>
               </View>
             ))}
           </View>
@@ -238,9 +238,9 @@ export default function WrappedScreen() {
       >
         <View style={styles.card}>
           <Text style={styles.icon}>{currentCard.icon}</Text>
-          <Text style={styles.title}>{currentCard.title}</Text>
+          <Text style={[styles.title, {color: colors.text}]}>{currentCard.title}</Text>
           {typeof currentCard.subtitle === "string" ? (
-            <Text style={styles.subtitle}>{currentCard.subtitle}</Text>
+            <Text style={[[styles.subtitle, {color: colors.text}], {color: colors.text}]}>{currentCard.subtitle}</Text>
           ) : (
             currentCard.subtitle
           )}
@@ -272,13 +272,7 @@ const styles = StyleSheet.create({
   card: {
     width: "90%",
     aspectRatio: 9 / 16,
-    backgroundColor: "#1f2937",
     borderRadius: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.8,
-    shadowRadius: 15,
-    elevation: 20,
     padding: 32,
     alignItems: "center",
     justifyContent: "center",
@@ -290,7 +284,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 40,
     fontWeight: "bold",
-    color: "white",
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 5,
     marginBottom: 8,
@@ -299,7 +292,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "white",
     textAlign: "center",
   },
   highlight: {
@@ -322,7 +314,6 @@ const styles = StyleSheet.create({
   bookTitle: {
     fontSize: 20,
     fontWeight: "600",
-    color: "white",
     textAlign: "center",
   },
   dotsContainer: {

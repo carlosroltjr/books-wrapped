@@ -57,7 +57,9 @@ export default function SearchScreen() {
           { borderColor: colors.border, color: colors.text },
         ]}
       />
-      <Button title="Search" onPress={handleSearch} color={colors.primary} />
+      <View style={{marginBottom: 15}}>
+        <Button title="Search" onPress={handleSearch} color={colors.primary} />
+      </View>
       {loading && <ActivityIndicator style={{ margin: 20 }} color={colors.primary} />}
       <FlatList
         data={results}
